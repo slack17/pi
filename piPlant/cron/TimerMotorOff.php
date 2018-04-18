@@ -1,5 +1,5 @@
 <?php
-	date_default_timezone_set('America/New_York');
+	date_default_timezone_set('Asia/Kuwait');
     $str = file_get_contents('/var/www/html/api/piPlant/data.json');
     $json = json_decode($str, true);
    
@@ -52,19 +52,20 @@ $sleepTime = date('s', strtotime($endTime));
 			$motorName = "SELECT * from motorName where motorId = '$motorId' ";
 			$resultMotorName = mysqli_query($conn,$motorName);
 			$dataName = mysqli_fetch_assoc($resultMotorName);
-
+	
 			$message = $dataName['name']." Switched Off";
 			$title = "Motor Alarm";
 
 			$resultOff = mysqli_query($conn,$userSql);
-
+	
+	exec("".$cmd."");
             while($user = mysqli_fetch_assoc($resultOff))
             {
 		echo $user['userId'];
                send_gcm_notify($user['deviceToken'],$message,$title,$dbhost);
 
             }
-exec("sudo ".$cmd);
+
 	    }	
 	
 	}

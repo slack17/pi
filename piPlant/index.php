@@ -1,5 +1,5 @@
 <?php
-date_default_timezone_set('America/New_York');
+date_default_timezone_set('Asia/Kuwait');
 require_once('PHPMailer_5.2.0/class.phpmailer.php');
 require 'Slim/Slim.php';
 
@@ -117,7 +117,8 @@ $devicetoken="dYauN7xASfQ:APA91bFVJnfxO8kbTU6X7CnxeiZVz1EEOJaCRe85hQMcnnUWTHPa0G
 function writeJson($data)
 {
     
-    $fp = fopen('data.json', 'w');
+    $fp = fopen('
+', 'w');
     fwrite($fp, $data);
     fclose($fp);
 
@@ -297,7 +298,7 @@ function register()
     VALUES ($userId,'$email','$deviceToken','temNoti','humNoti','genNoti')";
 
 //SELECT * from motorName join timer on timer.motorId = motorName.motorId  where motorName.motorId IN('MOTOR1','MOTOR2', 'MOTOR3','MOTOR4')
-    $select  = "SELECT motorName.*, timer.*, MotorTimer.cronStatus as countTimerStatus  from motorName join timer on timer.motorId = motorName.motorId LEFT JOIN MotorTimer on MotorTimer.motorId = motorName.motorId  where motorName.motorId IN($req->device) GROUP BY motorName.motorId";
+    $select  = "SELECT motorName.*, timer.*, ifnull(MotorTimer.cronStatus,1) as countTimerStatus  from motorName join timer on timer.motorId = motorName.motorId LEFT JOIN MotorTimer on MotorTimer.motorId = motorName.motorId  where motorName.motorId IN($req->device) GROUP BY motorName.motorId";
     $selectSensor  = "SELECT * from sensorName join sensorAlert on sensorAlert.device = sensorName.device";
     $uniqSen = "SELECT distinct device  FROM soil group by  device";
 
@@ -635,10 +636,30 @@ function timerMotor()
 	$userId = $req->userId;
         $motorId = $req->motorId;
         $cmd = $req->cmd;
-        $endTime = date('Y-m-d h:i:s',strtotime('+'.$hour.' hour +'.$Minutes.' minutes +' .$seconds.' seconds',strtotime($stime)));
-        $insert = "INSERT INTO MotorTimer (userId,motorId, startTime,endTime,cmd) VALUES ('$userId','$motorId', '$stime','$endTime','$cmd')";
+
+$endTime = date('Y-m-d h:i:s',strtotime('+'.$hour.' hour +'.$Minutes.' minutes +' .$seconds.' seconds',strtotime($stime)));
+
+    $select = "SELECT * from  MotorTimer where userId = '$userId' and motorId = '$motorId' ";
+
+    $qry = $db->prepare($select);
+    $qry->execute();
+    $chkData = $qry->fetch(PDO::FETCH_OBJ);
+    if($chkData)
+    {
+        
+
+         $insert = "UPDATE  MotorTimer SET startTime = '$stime',endTime='$endTime',cronStatus = 0,cmd = '$cmd' WHERE motorId = '$motorId' ";
         $qryinsert = $db->prepare($insert);
         $qryinsert->execute();
+    }
+    else
+    {
+
+ $insert = "INSERT INTO MotorTimer (userId,motorId, startTime,endTime,cmd) VALUES ('$userId','$motorId', '$stime','$endTime','$cmd')";
+        $qryinsert = $db->prepare($insert);
+        $qryinsert->execute();
+    }
+
         $res = array('Result'=>'Success',
                  'Status'=>'Registered successfully');
 
@@ -727,8 +748,8 @@ function updateMotorStatus()
          $qrySelect->execute();
 
    	 $message = $mdata->name." Switched ".$show ;$title="Motor Switched";
-   
-
+    exec("sudo ".$trigger);
+	send_gcm_notify($chkData->deviceToken,$message,$title);
 	
 
 	  $update = "INSERT INTO updateMotorCron (userId,message,title,cronStatus) VALUES ('$userId','$message','$title','0')";
@@ -747,7 +768,7 @@ function updateMotorStatus()
                  'data'=>$state,
                  
                  );
-     exec("sudo ".$trigger);
+    
     echo json_encode($res);exit;   
 
 }

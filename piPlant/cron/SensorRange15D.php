@@ -1,7 +1,7 @@
 <?php
 
 
-date_default_timezone_set('Asia/Kolkata');
+date_default_timezone_set('Asia/Kuwait');
 $str = file_get_contents('/var/www/html/api/piPlant/data.json');
     $json = json_decode($str, true);
     #$obj = json_encode($json);
@@ -272,7 +272,7 @@ while($sensorAlert = mysqli_fetch_assoc($result))
 			 		if($min == 0)
 			 		{
 			 		$notify = 1;
-			 		$messageHum = $name."Humidity is ".$Humidity;
+			 		$messageHum = $name." Humidity is ".$Humidity;
 			 		
 			 			$qrymin = mysqli_query($conn,$minUpdate);	
 			 		}
